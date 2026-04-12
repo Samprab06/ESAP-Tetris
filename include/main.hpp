@@ -2,8 +2,8 @@
 #include <TFT_eSPI.h>
 #include <SPI.h>
 #include <ESP_I2S.h>
-#include <SD.h>
 // #include <ESP_NOW.h>
+#include "sdcard.h"
 
 TFT_eSPI tft = TFT_eSPI();
 
