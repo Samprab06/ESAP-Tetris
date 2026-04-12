@@ -14,12 +14,13 @@ TFT_eSPI tft = TFT_eSPI();
 #define PIN_ROT 35
 #define PIN_LEFT 36
 #define PIN_RIGHT 39
+#define PIN_START 32
 #define ACTIVE_STATE HIGH 
 
-
 #define BLOCK_SIZE 11   
-#define OFFSET_X 60  
-#define OFFSET_Y 10    
+#define OFFSET_X 20     
+#define OFFSET_Y 10     
+#define UI_LEFT_MARGIN 160
 
 //delay for how long to hold down button to trigger auto move 
 #define DAS_DELAY 250   
@@ -45,17 +46,19 @@ const int PIECES[28] = {
 
 typedef struct{ int c[BOARD_H][BOARD_W]; } Grid;
 typedef struct{ int x,y,rot,type; } Piece;
-typedef struct{
-        int score, lines;
-        Grid grid;
-        Piece cur;
-        int nxt_type;
-        int gravity_rst;
-        int gravity;
-        int alive;
+typedef struct {
+    int score, lines;
+    Grid grid;
+    Piece cur;
+    int nxt_type;
+    int gravity_rst;
+    int gravity;
+    bool alive;
+    bool paused; 
 } State;
 
-typedef struct{ int L,R,D,Z,X; } Input;
+typedef struct { int L, R, D, Z, X, Start; } Input;
+
 
 int in_bounds( int x, int y );
 int can_place( Grid* g, Piece* p );
@@ -79,6 +82,7 @@ unsigned long lPressTime = 0;
 bool lDasActive = false;
 unsigned long rPressTime = 0;
 bool rDasActive = false;
+bool lastStart = false;
 
 int prevScore = -1;
 int prevNextType = -1;
@@ -225,137 +229,119 @@ void drawGame(State* s) {
         }
     }
 }
-
 void drawUI(State* s) {
-    tft.drawRect(OFFSET_X - 1, OFFSET_Y - 1, (BOARD_W * BLOCK_SIZE) + 1, (BOARD_H * BLOCK_SIZE) + 1, TFT_WHITE);
-
-    int uiX = OFFSET_X + (BOARD_W * BLOCK_SIZE) + 15; 
+   
+    tft.drawRect(OFFSET_X - 1, OFFSET_Y - 1, (BOARD_W * BLOCK_SIZE) + 2, (BOARD_H * BLOCK_SIZE) + 2, TFT_WHITE);
+    int uiX = 180; 
 
     
     if (s->nxt_type != prevNextType) {
-        tft.fillRect(uiX, OFFSET_Y, 60, 60, TFT_BLACK); 
-        tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString("NEXT", uiX, OFFSET_Y, 2);
+        tft.fillRect(uiX, 20, 80, 70, TFT_BLACK);
+        tft.setTextColor(TFT_CYAN, TFT_BLACK);
+        tft.drawString("NEXT", uiX, 20, 2);
 
         int type = s->nxt_type;
-        int p_idx = 4 * type; 
-        uint16_t color = TFT_BLACK;
-        if (PCOLOR[type] == 1) color = TFT_RED;
-        else if (PCOLOR[type] == 2) color = TFT_GREEN;
-        else if (PCOLOR[type] == 3) color = TFT_BLUE;
+        uint16_t color = (PCOLOR[type] == 1) ? TFT_RED : (PCOLOR[type] == 2 ? TFT_GREEN : TFT_BLUE);
 
         for(int y = 0; y < 4; y++) {
             for(int x = 0; x < 4; x++) {
-                if((PIECES[p_idx] >> (4 * (3-y) + x)) & 1) { 
-                    tft.fillRect(uiX + (x * 10), OFFSET_Y + 20 + (y * 10), 9, 9, color);
+                if((PIECES[4 * type] >> (4 * (3-y) + x)) & 1) { 
+                    tft.fillRect(uiX + (x * 10), 40 + (y * 10), 9, 9, color);
                 }
             }
         }
         prevNextType = s->nxt_type;
     }
 
-    
+    // 3. Score (Now clearly visible at bottom right)
     if (s->score != prevScore) {
-        tft.fillRect(uiX, OFFSET_Y + 80, 60, 40, TFT_BLACK); 
+        tft.fillRect(uiX, 180, 100, 40, TFT_BLACK);
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString("SCORE", uiX, OFFSET_Y + 80, 2);
-        tft.drawNumber(s->score, uiX, OFFSET_Y + 95, 2);
+        tft.drawString("SCORE", uiX, 180, 2);
+        tft.drawNumber(s->score, uiX, 195, 4); // Larger font for score
         prevScore = s->score;
     }
 }
-
-
 void setup() {
     Serial.begin(115200);
 
     tft.init();
-    tft.setRotation(0);
+    tft.setRotation(3);
     tft.fillScreen(TFT_BLACK);
 
     pinMode(PIN_LEFT, INPUT);
     pinMode(PIN_RIGHT, INPUT);
     pinMode(PIN_DOWN, INPUT);
     pinMode(PIN_ROT, INPUT);
+    pinMode(PIN_START, INPUT); 
 
     randomSeed(esp_random());
-
-    gameInput.L = 0; gameInput.R = 0; gameInput.Z = 0; gameInput.X = 0; gameInput.D = 0;
-    init_state(&gameState); 
+    init_state(&gameState);
     
+    gameState.paused = true;
     drawUI(&gameState);
 }
-
 void loop() {
     unsigned long currentMillis = millis();
+    bool currStart = (digitalRead(PIN_START) == ACTIVE_STATE);
 
-    bool currL = (digitalRead(PIN_LEFT) == ACTIVE_STATE);
-    bool currR = (digitalRead(PIN_RIGHT) == ACTIVE_STATE);
-    bool currDown = (digitalRead(PIN_DOWN) == ACTIVE_STATE);
-    bool currRot = (digitalRead(PIN_ROT) == ACTIVE_STATE);
-
-    //some black magic fuckery to implement holding buttons
-    if (currL) {
-        if (lPressTime == 0) { 
-            gameInput.L = 1;
-            lPressTime = currentMillis;
-            lDasActive = false;
+    // --- Start/Pause/Restart Logic ---
+    if (currStart && !lastStart) {
+        if (!gameState.alive) {
+            // Restart game if dead
+            tft.fillScreen(TFT_BLACK);
+            init_state(&gameState);
+            gameState.paused = false;
         } else {
-            if (!lDasActive && (currentMillis - lPressTime >= DAS_DELAY)) {
-                gameInput.L = 1;
-                lPressTime = currentMillis;
-                lDasActive = true;
-            } else if (lDasActive && (currentMillis - lPressTime >= ARR_DELAY)) {
-                gameInput.L = 1;
-                lPressTime = currentMillis;
+            // Toggle pause if alive
+            gameState.paused = !gameState.paused;
+            if (gameState.paused) {
+                tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+                tft.drawCentreString("PAUSED", 160, 110, 4);
             } else {
-                gameInput.L = 0; 
+                // Clear the "PAUSED" text when unpausing
+                tft.fillRect(100, 100, 120, 40, TFT_BLACK);
             }
         }
-    } else {
-        gameInput.L = 0;
-        lPressTime = 0;
-        lDasActive = false;
     }
-    
-    if (currR) {
-        if (rPressTime == 0) { 
-            gameInput.R = 1;
-            rPressTime = currentMillis;
-            rDasActive = false;
-        } else {
-            if (!rDasActive && (currentMillis - rPressTime >= DAS_DELAY)) {
-                gameInput.R = 1;
-                rPressTime = currentMillis;
-                rDasActive = true;
-            } else if (rDasActive && (currentMillis - rPressTime >= ARR_DELAY)) {
-                gameInput.R = 1;
-                rPressTime = currentMillis;
-            } else {
-                gameInput.R = 0; 
-            }
-        }
-    } else {
-        gameInput.R = 0;
-        rPressTime = 0;
-        rDasActive = false;
+    lastStart = currStart;
+
+    if (!gameState.paused && gameState.alive) {
+        // --- DAS Input Logic (Left/Right) ---
+        bool currL = (digitalRead(PIN_LEFT) == ACTIVE_STATE);
+        bool currR = (digitalRead(PIN_RIGHT) == ACTIVE_STATE);
+        
+        // Left DAS
+        if (currL) {
+            if (lPressTime == 0) { gameInput.L = 1; lPressTime = currentMillis; lDasActive = false; }
+            else if (!lDasActive && (currentMillis - lPressTime >= DAS_DELAY)) { gameInput.L = 1; lPressTime = currentMillis; lDasActive = true; }
+            else if (lDasActive && (currentMillis - lPressTime >= ARR_DELAY)) { gameInput.L = 1; lPressTime = currentMillis; }
+            else { gameInput.L = 0; }
+        } else { gameInput.L = 0; lPressTime = 0; lDasActive = false; }
+
+        // Right DAS
+        if (currR) {
+            if (rPressTime == 0) { gameInput.R = 1; rPressTime = currentMillis; rDasActive = false; }
+            else if (!rDasActive && (currentMillis - rPressTime >= DAS_DELAY)) { gameInput.R = 1; rPressTime = currentMillis; rDasActive = true; }
+            else if (rDasActive && (currentMillis - rPressTime >= ARR_DELAY)) { gameInput.R = 1; rPressTime = currentMillis; }
+            else { gameInput.R = 0; }
+        } else { gameInput.R = 0; rPressTime = 0; rDasActive = false; }
+
+        // Rotate and Down
+        bool currRot = (digitalRead(PIN_ROT) == ACTIVE_STATE);
+        gameInput.Z = (currRot && !lastRot) ? 1 : 0;
+        gameInput.D = (digitalRead(PIN_DOWN) == ACTIVE_STATE);
+        lastRot = currRot;
+
+        update(&gameState, &gameInput);
+        drawGame(&gameState);
+    } 
+    else if (!gameState.alive) {
+        tft.setTextColor(TFT_RED, TFT_BLACK);
+        tft.drawCentreString("GAME OVER", 160, 100, 4);
+        tft.drawCentreString("Press START to Reset", 160, 140, 2);
     }
 
-    gameInput.Z = (currRot && !lastRot) ? 1 : 0; 
-    gameInput.D = currDown ? 1 : 0;              
-
-    lastRot = currRot;
-
-    update(&gameState, &gameInput);
-    
-    drawGame(&gameState);
     drawUI(&gameState);
-
-    delay(16); 
-
-    if (!gameState.alive) {
-        delay(2000);
-        tft.fillScreen(TFT_BLACK);
-        init_state(&gameState);
-        drawUI(&gameState); 
-    }
+    delay(16);
 }
