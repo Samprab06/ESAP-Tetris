@@ -152,68 +152,68 @@ void deleteFile(fs::FS &fs, const char *path)
     }
 }
 
-void setup()
-{
-    Serial.begin(115200);
+// void setup()
+// {
+//     Serial.begin(115200);
 
-#ifdef REASSIGN_PINS
-    SPI.begin(sck, miso, mosi, cs);
-    if (!SD.begin(cs))
-    {
-#else
-    if (!SD.begin())
-    {
-#endif
-        Serial.println("Card Mount Failed");
-        return;
-    }
-    uint8_t cardType = SD.cardType();
+// #ifdef REASSIGN_PINS
+//     SPI.begin(sck, miso, mosi, cs);
+//     if (!SD.begin(cs))
+//     {
+// #else
+//     if (!SD.begin())
+//     {
+// #endif
+//         Serial.println("Card Mount Failed");
+//         return;
+//     }
+//     uint8_t cardType = SD.cardType();
 
-    if (cardType == CARD_NONE)
-    {
-        Serial.println("No SD card attached");
-        return;
-    }
+//     if (cardType == CARD_NONE)
+//     {
+//         Serial.println("No SD card attached");
+//         return;
+//     }
 
-    Serial.print("SD Card Type: ");
-    if (cardType == CARD_MMC)
-    {
-        Serial.println("MMC");
-    }
-    else if (cardType == CARD_SD)
-    {
-        Serial.println("SDSC");
-    }
-    else if (cardType == CARD_SDHC)
-    {
-        Serial.println("SDHC");
-    }
-    else
-    {
-        Serial.println("UNKNOWN");
-    }
+//     Serial.print("SD Card Type: ");
+//     if (cardType == CARD_MMC)
+//     {
+//         Serial.println("MMC");
+//     }
+//     else if (cardType == CARD_SD)
+//     {
+//         Serial.println("SDSC");
+//     }
+//     else if (cardType == CARD_SDHC)
+//     {
+//         Serial.println("SDHC");
+//     }
+//     else
+//     {
+//         Serial.println("UNKNOWN");
+//     }
 
-    uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-    Serial.print("SD Card Size: ");
-    Serial.print(cardSize);
-    Serial.println("MB");
+//     uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+//     Serial.print("SD Card Size: ");
+//     Serial.print(cardSize);
+//     Serial.println("MB");
 
-    listDir(SD, "/", 0);
-    createDir(SD, "/mydir");
-    listDir(SD, "/", 0);
-    removeDir(SD, "/mydir");
-    listDir(SD, "/", 2);
-    writeFile(SD, "/hello.txt", "Hello ");
-    appendFile(SD, "/hello.txt", "World!\n");
-    readFile(SD, "/hello.txt");
-    deleteFile(SD, "/foo.txt");
-    renameFile(SD, "/hello.txt", "/foo.txt");
-    readFile(SD, "/foo.txt");
+//     listDir(SD, "/", 0);
+//     createDir(SD, "/mydir");
+//     listDir(SD, "/", 0);
+//     removeDir(SD, "/mydir");
+//     listDir(SD, "/", 2);
+//     writeFile(SD, "/hello.txt", "Hello ");
+//     appendFile(SD, "/hello.txt", "World!\n");
+//     readFile(SD, "/hello.txt");
+//     deleteFile(SD, "/foo.txt");
+//     renameFile(SD, "/hello.txt", "/foo.txt");
+//     readFile(SD, "/foo.txt");
 
-    Serial.print("Total space: ");
-    Serial.print(SD.totalBytes() / (1024 * 1024));
-    Serial.println("MB");
-    Serial.print("Used space: ");
-    Serial.print(SD.usedBytes() / (1024 * 1024));
-    Serial.println("MB");
-}
+//     Serial.print("Total space: ");
+//     Serial.print(SD.totalBytes() / (1024 * 1024));
+//     Serial.println("MB");
+//     Serial.print("Used space: ");
+//     Serial.print(SD.usedBytes() / (1024 * 1024));
+//     Serial.println("MB");
+// }

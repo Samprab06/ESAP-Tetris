@@ -251,6 +251,7 @@ void setup()
     gameState.paused = true;
     drawUI(&gameState);
 }
+
 void loop()
 {
     unsigned long currentMillis = millis();

@@ -1,5 +1,6 @@
 {
     "stm32-for-vscode.openOCDPath": false,
     "stm32-for-vscode.makePath": false,
-    "stm32-for-vscode.armToolchainPath": false
+    "stm32-for-vscode.armToolchainPath": false,
+    "C_Cpp.default.compilerPath": "C:/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-gcc.exe"
 }
