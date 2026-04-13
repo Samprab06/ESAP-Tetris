@@ -1,22 +1,23 @@
 {
+    "C_Cpp.default.compilerPath": "C:/.platformio/packages/toolchain-xtensa-esp32@8.4.0+2021r2-patch5/bin/xtensa-esp32-elf-gcc.exe",
     "workbench.colorCustomizations": {
-        "activityBar.activeBackground": "#7243ee",
-        "activityBar.background": "#7243ee",
-        "activityBar.foreground": "#e7e7e7",
-        "activityBar.inactiveForeground": "#e7e7e799",
-        "activityBarBadge.background": "#ef7b50",
+        "activityBar.activeBackground": "#e985e6",
+        "activityBar.background": "#e985e6",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#f4f5c9",
         "activityBarBadge.foreground": "#15202b",
-        "commandCenter.border": "#e7e7e799",
-        "sash.hoverBorder": "#7243ee",
-        "statusBar.background": "#4f15e9",
-        "statusBar.foreground": "#e7e7e7",
-        "statusBarItem.hoverBackground": "#7243ee",
-        "statusBarItem.remoteBackground": "#4f15e9",
-        "statusBarItem.remoteForeground": "#e7e7e7",
-        "titleBar.activeBackground": "#4f15e9",
-        "titleBar.activeForeground": "#e7e7e7",
-        "titleBar.inactiveBackground": "#4f15e999",
-        "titleBar.inactiveForeground": "#e7e7e799"
+        "commandCenter.border": "#15202b99",
+        "sash.hoverBorder": "#e985e6",
+        "statusBar.background": "#e15add",
+        "statusBar.foreground": "#15202b",
+        "statusBarItem.hoverBackground": "#d92fd4",
+        "statusBarItem.remoteBackground": "#e15add",
+        "statusBarItem.remoteForeground": "#15202b",
+        "titleBar.activeBackground": "#e15add",
+        "titleBar.activeForeground": "#15202b",
+        "titleBar.inactiveBackground": "#e15add99",
+        "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#4f15e9"
+    "peacock.color": "#e15add"
 }
