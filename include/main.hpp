@@ -1,9 +1,14 @@
 // #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <SPI.h>
-#include <ESP_I2S.h>
+//#include <ESP_I2S.h>
 // #include <ESP_NOW.h>
 #include "sdcard.h"
+#include "SD.h"
+#include "AudioFileSourceSD.h"
+#include "AudioGeneratorMP3.h"
+#include "AudioFileSourceBuffer.h"
+#include "AudioOutputI2S.h"
 
 TFT_eSPI tft = TFT_eSPI();
 
@@ -19,6 +24,12 @@ TFT_eSPI tft = TFT_eSPI();
 #define PIN_RIGHT 39
 #define PIN_START 32
 #define ACTIVE_STATE HIGH
+
+// SD Card & I2S Pins
+#define SD_CS 15
+#define I2S_BCLK 26
+#define I2S_LRC 25
+#define I2S_DOUT 27
 
 #define BLOCK_SIZE 11
 #define OFFSET_X 20
@@ -96,3 +107,8 @@ bool lastStart = false;
 
 int prevScore = -1;
 int prevNextType = -1;
+
+AudioGeneratorMP3 *mp3 = nullptr;
+AudioFileSourceSD *file_raw = nullptr;
+AudioFileSourceBuffer *file = nullptr;
+AudioOutputI2S *out = nullptr;

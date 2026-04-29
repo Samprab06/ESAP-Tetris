@@ -1,5 +1,9 @@
 #include "main.hpp"
 
+int prev_disp[BOARD_H][BOARD_W] = {0};
+bool force_redraw = true;
+bool gameOverDrawn = false;
+
 int in_bounds(int x, int y)
 {
     return 0 <= x && x < BOARD_W && 0 <= y;
@@ -87,6 +91,8 @@ void init_state(State *state)
 
     prevScore = -1;
     prevNextType = -1;
+    force_redraw = true;
+    gameOverDrawn = false;
 
     state->nxt_type = random(7);
     new_piece(state);
@@ -116,13 +122,35 @@ void update(State *state, const Input *input)
     {
         rot_piece(p, +1);
         if (!can_place(g, p))
-            rot_piece(p, -1);
+        {
+            mv_piece(p, 1, 0); // try right wall-kick
+            if (!can_place(g, p))
+            {
+                mv_piece(p, -2, 0); // try left wall-kick
+                if (!can_place(g, p))
+                {
+                    mv_piece(p, 1, 0); // revert move
+                    rot_piece(p, -1);  // revert rot
+                }
+            }
+        }
     }
     else if (input->X)
     {
         rot_piece(p, -1);
         if (!can_place(g, p))
-            rot_piece(p, +1);
+        {
+            mv_piece(p, 1, 0);
+            if (!can_place(g, p))
+            {
+                mv_piece(p, -2, 0);
+                if (!can_place(g, p))
+                {
+                    mv_piece(p, 1, 0);
+                    rot_piece(p, +1);
+                }
+            }
+        }
     }
 
     if (input->D)
@@ -155,6 +183,11 @@ void update(State *state, const Input *input)
     }
 }
 
+// Display scaling for 480x320 (Landscape)
+const int DRAW_BLOCK_SIZE = 15; // Scaled down so 20 blocks fit in 320px height
+const int DRAW_OFFSET_X = 160;  // Centered horizontally on 480px width
+const int DRAW_OFFSET_Y = 10;   // Small top margin
+
 void drawGame(State *s)
 {
     Grid *g = &s->grid;
@@ -177,6 +210,12 @@ void drawGame(State *s)
                 }
             }
 
+            // Only redraw the block if its color has changed
+            if (!force_redraw && c == prev_disp[y][x])
+                continue;
+            
+            prev_disp[y][x] = c;
+
             uint16_t blockColor = TFT_BLACK;
             if (c == 1)
                 blockColor = TFT_RED;
@@ -185,22 +224,23 @@ void drawGame(State *s)
             else if (c == 3)
                 blockColor = TFT_BLUE;
 
-            int screenX = OFFSET_X + (x * BLOCK_SIZE);
-            int screenY = OFFSET_Y + ((BOARD_H - 1 - y) * BLOCK_SIZE);
+            int screenX = DRAW_OFFSET_X + (x * DRAW_BLOCK_SIZE);
+            int screenY = DRAW_OFFSET_Y + ((BOARD_H - 1 - y) * DRAW_BLOCK_SIZE);
 
-            tft.fillRect(screenX, screenY, BLOCK_SIZE - 1, BLOCK_SIZE - 1, blockColor);
+            tft.fillRect(screenX, screenY, DRAW_BLOCK_SIZE - 1, DRAW_BLOCK_SIZE - 1, blockColor);
         }
     }
+    force_redraw = false;
 }
 void drawUI(State *s)
 {
 
-    tft.drawRect(OFFSET_X - 1, OFFSET_Y - 1, (BOARD_W * BLOCK_SIZE) + 2, (BOARD_H * BLOCK_SIZE) + 2, TFT_WHITE);
-    int uiX = 180;
+    tft.drawRect(DRAW_OFFSET_X - 1, DRAW_OFFSET_Y - 1, (BOARD_W * DRAW_BLOCK_SIZE) + 2, (BOARD_H * DRAW_BLOCK_SIZE) + 2, TFT_WHITE);
+    int uiX = 360; // Push UI elements further right to fit the landscape display
 
     if (s->nxt_type != prevNextType)
     {
-        tft.fillRect(uiX, 20, 80, 70, TFT_BLACK);
+        tft.fillRect(uiX, 20, 85, 130, TFT_BLACK); // Increased clear area for larger blocks
         tft.setTextColor(TFT_CYAN, TFT_BLACK);
         tft.drawString("NEXT", uiX, 20, 2);
 
@@ -213,7 +253,7 @@ void drawUI(State *s)
             {
                 if ((PIECES[4 * type] >> (4 * (3 - y) + x)) & 1)
                 {
-                    tft.fillRect(uiX + (x * 10), 40 + (y * 10), 9, 9, color);
+                        tft.fillRect(uiX + (x * 20), 50 + (y * 20), 19, 19, color); // Scaled up next block size
                 }
             }
         }
@@ -223,10 +263,10 @@ void drawUI(State *s)
     // 3. Score (Now clearly visible at bottom right)
     if (s->score != prevScore)
     {
-        tft.fillRect(uiX, 180, 100, 40, TFT_BLACK);
+        tft.fillRect(uiX, 200, 80, 80, TFT_BLACK);
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString("SCORE", uiX, 180, 2);
-        tft.drawNumber(s->score, uiX, 195, 4); // Larger font for score
+        tft.drawString("SCORE", uiX, 200, 2);
+        tft.drawNumber(s->score, uiX, 220, 4); // Larger font for score
         prevScore = s->score;
     }
 }
@@ -236,7 +276,8 @@ void setup()
     Serial.begin(115200);
 
     tft.init();
-    tft.setRotation(3);
+    // tft.setRotation(0); // Vertical
+    tft.setRotation(1);    // Horizontal
     tft.fillScreen(TFT_BLACK);
 
     pinMode(PIN_LEFT, INPUT);
@@ -245,16 +286,84 @@ void setup()
     pinMode(PIN_ROT, INPUT);
     pinMode(PIN_START, INPUT);
 
+    if (!SD.begin(SD_CS)) {
+        Serial.println("SD Card Mount Failed. Audio disabled.");
+    } else {
+        Serial.println("SD Card Mount Success!");
+        out = new AudioOutputI2S();
+        out->SetPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+        
+        file_raw = new AudioFileSourceSD("/tetris.mp3");
+        file = new AudioFileSourceBuffer(file_raw, 16384); // Read 16KB of MP3 into RAM to prevent SPI starvation
+        mp3 = new AudioGeneratorMP3();
+    }
+
     randomSeed(esp_random());
     init_state(&gameState);
 
     gameState.paused = true;
     drawUI(&gameState);
+
+    // --- Dedicated Audio Task on Core 0 ---
+    xTaskCreatePinnedToCore(
+        [](void *parameter) {
+            while (true) {
+                bool shouldPlay = (!gameState.paused && gameState.alive);
+                if (mp3) {
+                    if (shouldPlay) {
+                        if (!mp3->isRunning()) {
+                            mp3->begin(file, out);
+                        }
+                        if (!mp3->loop()) {
+                            // Reached end of file, loop track
+                            mp3->stop();
+                            file->seek(0, SEEK_SET); 
+                        }
+                    } else {
+                        if (mp3->isRunning()) {
+                            mp3->stop(); // Pause track
+                        }
+                    }
+                }
+                // Yield 1ms to prevent Watchdog crash and let Core 0 do other things
+                vTaskDelay(pdMS_TO_TICKS(1)); 
+            }
+        },
+        "AudioTask",
+        4096, // 4KB stack space
+        NULL,
+        1,    // Priority
+        NULL,
+        0     // Pin to Core 0 (Arduino loop runs on Core 1)
+    );
 }
 
 void loop()
 {
+    // --- Audio Processing (Needs continuous polling without delay) ---
+    bool shouldPlay = (!gameState.paused && gameState.alive);
+    if (mp3) {
+        if (shouldPlay) {
+            if (!mp3->isRunning()) {
+                mp3->begin(file, out);
+            }
+            if (!mp3->loop()) {
+                // Reached end of file, loop track
+                mp3->stop();
+                file->seek(0, SEEK_SET); 
+            }
+        } else {
+            if (mp3->isRunning()) {
+                mp3->stop(); // Pause track
+            }
+        }
+    }
+
     unsigned long currentMillis = millis();
+    static unsigned long lastFrame = 0;
+    if (currentMillis - lastFrame < 16) return; // Non-blocking ~60 FPS limit
+    lastFrame = currentMillis;
+
     bool currStart = (digitalRead(PIN_START) == ACTIVE_STATE);
 
     // --- Start/Pause/Restart Logic ---
@@ -274,12 +383,13 @@ void loop()
             if (gameState.paused)
             {
                 tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-                tft.drawCentreString("PAUSED", 160, 110, 4);
+                tft.drawCentreString("PAUSED", 240, 160, 4); // Centered on 480x320
             }
             else
             {
                 // Clear the "PAUSED" text when unpausing
-                tft.fillRect(100, 100, 120, 40, TFT_BLACK);
+                tft.fillRect(140, 130, 200, 60, TFT_BLACK);
+                force_redraw = true; // Redraw blocks that were hidden by the text
             }
         }
     }
@@ -366,11 +476,14 @@ void loop()
     }
     else if (!gameState.alive)
     {
-        tft.setTextColor(TFT_RED, TFT_BLACK);
-        tft.drawCentreString("GAME OVER", 160, 100, 4);
-        tft.drawCentreString("Press START to Reset", 160, 140, 2);
+        if (!gameOverDrawn) 
+        {
+            tft.setTextColor(TFT_RED, TFT_BLACK);
+            tft.drawCentreString("GAME OVER", 240, 140, 4);
+            tft.drawCentreString("Press START to Reset", 240, 180, 2);
+            gameOverDrawn = true;
+        }
     }
 
     drawUI(&gameState);
-    delay(16);
 }
