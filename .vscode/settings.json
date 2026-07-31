@@ -1,6 +1,0 @@
-{
-    "cmake.sourceDirectory": "C:/Users/prabh/Downloads/neww/ESAP_Tetris/lib/arduino-esp32-release-v2.x",
-    "stm32-for-vscode.openOCDPath": false,
-    "stm32-for-vscode.makePath": false,
-    "stm32-for-vscode.armToolchainPath": false
-}
