@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SPI.h>
-#include "ESP_I2S.h"
+#include <ESP_I2S.h>
 #include "sdcard.h"
 #include "display.h"
 #include "logic.h"

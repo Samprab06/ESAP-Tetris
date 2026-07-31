@@ -1,10 +1,15 @@
-# ESP32 Tetris game logic 
-As tested on esp32 devkit v1
+# TETRIS PCB
 
-## hardwre wiring
-spi display - MOSI: 23 SCK:18 CS:5 LED:3V3 RST:4 DC:2 (Change tft_espi config.h to represent the correct CS pin)
-Buttons (active high thru 1k resistor)
-left:36
-right:39
-down:34 
-rotate:35
+ESP32 DevKit v1 using 1x15 sockets
+
+TFT Display + SD Card using sockets; Brightness using potentiometer (from test pads)
+
+DAC + Amplifier using sockets
+
+6 Push buttons using test pads
+
+On/Off switch using test pads
+
+ESP and charging circuit is on the back
+
+everything else is on the front
