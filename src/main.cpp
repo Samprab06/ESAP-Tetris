@@ -1,7 +1,10 @@
 #include "main.hpp"
 
+#ifndef WOKWI_SIM
 SPIClass hspi(HSPI);
+#endif
 
+#ifndef WOKWI_SIM
 void audioTask(void *pvParameters)
 {
     printf("Audio task started on core %d\n", xPortGetCoreID());
@@ -50,6 +53,7 @@ void audioTask(void *pvParameters)
         vTaskDelay(1);
     }
 }
+#endif
 
 void setup()
 {
@@ -60,11 +64,11 @@ void setup()
     tft.setRotation(3);
     tft.fillScreen(TFT_BLACK);
 
-    pinMode(PIN_LEFT, INPUT);
-    pinMode(PIN_RIGHT, INPUT);
-    pinMode(PIN_DOWN, INPUT);
-    pinMode(PIN_ROT, INPUT);
-    pinMode(PIN_START, INPUT);
+    pinMode(PIN_LEFT, INPUT_PULLDOWN);
+    pinMode(PIN_RIGHT, INPUT_PULLDOWN);
+    pinMode(PIN_DOWN, INPUT_PULLDOWN);
+    pinMode(PIN_ROT, INPUT_PULLDOWN);
+    pinMode(PIN_START, INPUT_PULLDOWN);
 
     randomSeed(esp_random());
     init_state(&gameState);
@@ -72,6 +76,7 @@ void setup()
     gameState.paused = true;
     drawUI(&gameState);
 
+#ifndef WOKWI_SIM
     xTaskCreatePinnedToCore(
         audioTask,
         "AudioTask",
@@ -80,6 +85,7 @@ void setup()
         2,
         NULL,
         0);
+#endif
 }
 
 void loop()

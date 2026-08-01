@@ -4,39 +4,36 @@
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-ili9341", "id": "tft", "top": -50, "left": 200, "attrs": {} },
-    { "type": "wokwi-microsd-card", "id": "sd", "top": 150, "left": 200, "attrs": {} },
-    { "type": "wokwi-pushbutton", "id": "btn_left", "top": 200, "left": -100, "attrs": { "color": "green", "label": "Left" } },
-    { "type": "wokwi-pushbutton", "id": "btn_right", "top": 200, "left": -50, "attrs": { "color": "green", "label": "Right" } },
-    { "type": "wokwi-pushbutton", "id": "btn_down", "top": 250, "left": -75, "attrs": { "color": "blue", "label": "Down" } },
-    { "type": "wokwi-pushbutton", "id": "btn_rotate", "top": 150, "left": -75, "attrs": { "color": "red", "label": "Rotate" } },
-    { "type": "wokwi-pushbutton", "id": "btn_start", "top": 300, "left": -75, "attrs": { "color": "yellow", "label": "Start" } }
+    { "type": "wokwi-ili9341", "id": "tft", "top": -60, "left": 250, "attrs": {} },
+    { "type": "wokwi-pushbutton", "id": "btn_left",   "top": 100, "left": -120, "attrs": { "color": "green",  "label": "Left",   "key": "ArrowLeft"  } },
+    { "type": "wokwi-pushbutton", "id": "btn_right",  "top": 160, "left": -120, "attrs": { "color": "green",  "label": "Right",  "key": "ArrowRight" } },
+    { "type": "wokwi-pushbutton", "id": "btn_down",   "top": 220, "left": -120, "attrs": { "color": "blue",   "label": "Down",   "key": "ArrowDown"  } },
+    { "type": "wokwi-pushbutton", "id": "btn_rotate", "top":  40, "left": -120, "attrs": { "color": "red",    "label": "Rotate", "key": "ArrowUp"    } },
+    { "type": "wokwi-pushbutton", "id": "btn_start",  "top": 280, "left": -120, "attrs": { "color": "yellow", "label": "Start",  "key": " "          } }
   ],
   "connections": [
-    [ "esp:3V3", "tft:VCC", "red", [] ],
-    [ "esp:GND", "tft:GND", "black", [] ],
-    [ "esp:3V3", "tft:LED", "red", [] ],
-    [ "esp:D5", "tft:CS", "green", [] ],
-    [ "esp:D4", "tft:RESET", "purple", [] ],
-    [ "esp:D2", "tft:DC", "yellow", [] ],
-    [ "esp:D23", "tft:MOSI", "blue", [] ],
-    [ "esp:D19", "tft:MISO", "blue", [] ],
-    [ "esp:D18", "tft:SCK", "cyan", [] ],
-    [ "esp:3V3", "sd:VCC", "red", [] ],
-    [ "esp:GND", "sd:GND", "black", [] ],
-    [ "esp:D15", "sd:CS", "green", [] ],
-    [ "esp:D23", "sd:MOSI", "blue", [] ],
-    [ "esp:D19", "sd:MISO", "blue", [] ],
-    [ "esp:D14", "sd:SCK", "cyan", [] ],
-    [ "esp:3V3", "btn_left:1.l", "red", [] ],
-    [ "esp:VP", "btn_left:2.l", "green", [] ],
-    [ "esp:3V3", "btn_right:1.l", "red", [] ],
-    [ "esp:VN", "btn_right:2.l", "green", [] ],
-    [ "esp:3V3", "btn_down:1.l", "red", [] ],
-    [ "esp:D34", "btn_down:2.l", "blue", [] ],
-    [ "esp:3V3", "btn_rotate:1.l", "red", [] ],
-    [ "esp:D35", "btn_rotate:2.l", "red", [] ],
-    [ "esp:3V3", "btn_start:1.l", "red", [] ],
-    [ "esp:D32", "btn_start:2.l", "yellow", [] ]
+    ["esp:3V3",  "tft:VCC",   "red",    []],
+    ["esp:GND",  "tft:GND",   "black",  []],
+    ["esp:D5",   "tft:CS",    "green",  []],
+    ["esp:D2",   "tft:DC",    "yellow", []],
+    ["esp:D4",   "tft:RST",   "purple", []],
+    ["esp:D23",  "tft:MOSI",  "blue",   []],
+    ["esp:D19",  "tft:MISO",  "blue",   []],
+    ["esp:D18",  "tft:SCK",   "cyan",   []],
+
+    ["esp:3V3",  "btn_left:1.r",   "red",    []],
+    ["esp:VP",   "btn_left:2.r",   "green",  []],
+
+    ["esp:3V3",  "btn_right:1.r",  "red",    []],
+    ["esp:VN",   "btn_right:2.r",  "green",  []],
+
+    ["esp:3V3",  "btn_down:1.r",   "red",    []],
+    ["esp:D34",  "btn_down:2.r",   "blue",   []],
+
+    ["esp:3V3",  "btn_rotate:1.r", "red",    []],
+    ["esp:D35",  "btn_rotate:2.r", "red",    []],
+
+    ["esp:3V3",  "btn_start:1.r",  "red",    []],
+    ["esp:D32",  "btn_start:2.r",  "yellow", []]
   ]
 }

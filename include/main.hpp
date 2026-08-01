@@ -1,11 +1,13 @@
 #pragma once
 
 #include <SPI.h>
+#ifndef WOKWI_SIM
 #include <ESP_I2S.h>
 #include "sdcard.h"
+#include "audio.h"
+#endif
 #include "display.h"
 #include "logic.h"
-#include "audio.h"
 #include "globals.hpp"
 // #include <ESP_NOW.h>
 
