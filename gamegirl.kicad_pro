@@ -656,7 +656,7 @@
         "uuid": "43c94b17-e901-41d3-b19e-22796bdb0628"
       }
     ],
-    "used_designators": "QD1",
+    "used_designators": "QD1,#PWR60",
     "variants": []
   },
   "sheets": [
