@@ -1,16 +1,16 @@
 # ESAP Tetris
 
-A complete, feature-packed Tetris game implementation for the ESP32 microcontroller featuring a custom PCB design, real-time graphics rendering on an ILI9341 SPI TFT display, I2S audio playback, SD card asset loading, and FreeRTOS multi-core task scheduling.
+A complete, feature-packed Tetris game implementation for the ESP32 microcontroller featuring a custom PCB design, real-time graphics rendering on an ILI9341 SPI TFT display, I2S audio playback, SD card asset loading and a future multiplayer implementation
 
 ---
 
-## 📸 PCB Design
+##  PCB Design
 
 The project features a custom-designed PCB tailored for handheld gameplay with optimized power delivery, hardware debouncing, and an auto-programming USB-C interface.
 
 ### Board Renders
 
-| Front View (Component Side) | Back View (Controls & Silk) |
+| Back View (Component Side) | Front View (Controls) |
 | :---: | :---: |
 | ![PCB Front Render](PCB/pcb_front.png) | ![PCB Back Render](PCB/pcb_back.png) |
 
@@ -64,9 +64,9 @@ The project features a custom-designed PCB tailored for handheld gameplay with o
 
 ---
 
-## 💻 Software Architecture
+##  Software Architecture
 
-The software is structured as a **PlatformIO** project utilizing FreeRTOS multi-core task scheduling:
+The software is structured as a **PlatformIO** project 
 
 ```
 ESAP_Tetris/
@@ -89,14 +89,10 @@ ESAP_Tetris/
 └── README.md                # Project documentation
 ```
 
-### FreeRTOS Dual-Core Task Allocation
-
-- **Core 1 (Main Task)**: Executes input polling, Tetris game loop, piece rotation, line clear checks, level progression, and TFT rendering.
-- **Core 0 (Audio Task)**: Manages SD card file buffering, WAV audio decoding, and continuous background music streaming via I2S DAC.
 
 ---
 
-## 🚀 Building & Flashing
+##  Building & Flashing
 
 ### Prerequisites
 - **VS Code** with **PlatformIO IDE** extension installed.
@@ -119,18 +115,8 @@ ESAP_Tetris/
 
 ---
 
-## 👥 Credits & Team
-
-**Designed and Built by:**
-- Samridh Prabhakar
-- Sabastian Hamilton
-- Aadithya Vasudevan
-- Mahdi El Husseini
-- Michael Wu
-- Wilbert Chu
-
 ---
 
-## 📜 License
+##  License
 
 This project is open-source and provided for educational and personal use.
